@@ -52,8 +52,7 @@ export const createBlog = async (req, res) => {
 
     if (!tags || !tags.length || tags.length > 10) {
       return res.status(403).json({
-        error:
-          "Provide tags in order to publish the blog, Maximum 10",
+        error: "Provide tags in order to publish the blog, Maximum 10",
       });
     }
   }
@@ -98,7 +97,7 @@ export const createBlog = async (req, res) => {
         $push: {
           blogs: savedBlog._id,
         },
-      }
+      },
     );
 
     return res.status(200).json({
@@ -112,3 +111,102 @@ export const createBlog = async (req, res) => {
     });
   }
 };
+
+export const getLatestBlogs = async (req, res) => {
+
+  const {page} = req.body
+  try {
+    const maxLimit = 5;
+
+    const blogs = await blogModel.find({ draft: false })
+      .populate(
+        "author",
+        "personal_info.profile_img personal_info.username personal_info.fullname -_id",
+      )
+      .sort({ publishedAt: -1 })
+      .select("blog_id title des banner activity tags publishedAt -_id")
+      .skip((page-1) * maxLimit)
+      .limit(maxLimit);
+
+    return res.status(200).json({ blogs:blogs });
+  } catch (err) {
+    return res.status(500).json({
+      error: err instanceof Error ? err.message : "Something went wrong",
+    });
+  }
+};
+
+export const allLatestBlogsCount =async (req,res) =>{
+  try{
+    const count = await blogModel.countDocuments({draft:false})
+    return res.status(200).json({
+      totalDocs: count
+    })
+
+  }catch(error){
+    return res.status(500).json({
+      error: err instanceof Error ? err.message : "Something went wrong",
+    });
+  }
+}
+
+export const getTrendingBlogs =async (req,res)=>{
+  try {
+
+    const blogs = await blogModel.find({ draft: false })
+      .populate(
+        "author",
+        "personal_info.profile_img personal_info.username personal_info.fullname -_id",
+      )
+      .sort({ "activity.total_read":-1, "activity.total_likes":-1, "publishedAt": -1 })
+      .select("blog_id title activity tags publishedAt -_id")
+      .limit(5);
+
+    return res.status(200).json({ blogs:blogs });
+  } catch (err) {
+    return res.status(500).json({
+      error: err instanceof Error ? err.message : "Something went wrong",
+    });
+  }
+}
+
+
+export const searchBlogs =async (req,res) =>{
+  try {
+    const {tag,page} = req.body
+
+    const findQuery = {tags:tag,draft:false}
+    const maxLimit = 2
+
+    const blogs = await blogModel.find(findQuery)
+      .populate(
+        "author",
+        "personal_info.profile_img personal_info.username personal_info.fullname -_id",
+      )
+      .sort({ publishedAt: -1 })
+      .select("blog_id title des banner activity tags publishedAt -_id")
+      .skip((page-1)*maxLimit).limit(maxLimit);
+
+    return res.status(200).json({ blogs });
+  } catch (err) {
+    return res.status(500).json({
+      error: err instanceof Error ? err.message : "Something went wrong",
+    });
+  }
+}
+
+export const searchBlogsCount =async(req,res)=>{
+  try {
+    const {tag} = req.body
+
+    const findQuery = {tags:tag,draft:false}
+
+    const count = await blogModel.countDocuments(findQuery)
+
+    return res.status(200).json({ totalDocs: count });
+  } catch (err) {
+    return res.status(500).json({
+      error: err instanceof Error ? err.message : "Something went wrong",
+    });
+  }
+}
