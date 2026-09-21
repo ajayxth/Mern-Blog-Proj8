@@ -54,7 +54,8 @@ const InPageNavigation = ({ routes,defaultHidden = [], children }: InPageNavigat
           key={i}
           className={
             "p-4 px-5 capitalize " +
-            (inPageNavIndex === i ? "text-black" : "text-dark-grey ") + (defaultHidden.includes(route) ? "md:hidden" : " ") 
+            (inPageNavIndex === i ? "text-black" : "text-dark-grey ") +
+            (defaultHidden.includes(route) ? "lg:hidden" : " ")
           }
         >
           {route}

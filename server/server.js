@@ -14,6 +14,7 @@ import { S3Client } from "@aws-sdk/client-s3";
 //routes import
 import authRouter from "./routes/authRoutes.js"
 import blogRouter from "./routes/blogRoutes.js"
+import userRouter from "./routes/userRoutes.js"
 
 
 initializeApp({
@@ -47,6 +48,7 @@ export const s3 = new S3Client({
 //routes use
 app.use("/api/auth",authRouter)
 app.use("/blog",blogRouter)
+app.use("/user",userRouter)
 
 
 app.get("/",(req,res)=>{

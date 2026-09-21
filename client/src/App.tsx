@@ -5,6 +5,7 @@ import { Toaster } from "react-hot-toast";
 import Editor from "./pages/EditorPage";
 import HomePage from "./pages/HomePage";
 import SearchPage from "./pages/SearchPage";
+import PageNotFound from "./pages/PageNotFound";
 
 const App = () => {
 
@@ -21,6 +22,7 @@ const App = () => {
           <Route path="signin" element={<UserAuthForm type="sign-in" />} />
           <Route path="signup" element={<UserAuthForm type="sign-up" />} />
           <Route path="search/:query" element={<SearchPage />} />
+          <Route path="*" element={<PageNotFound />} />
         </Route>
       </Routes>
     </>
