@@ -1,4 +1,4 @@
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
 import logo from "../assets/logo-horizontal.svg";
 import { useEffect, useRef, useState } from "react";
 import { useUserContext } from "../context/UserContext";
@@ -9,17 +9,23 @@ const Navbar = () => {
   const [userNavPanel, setUserNavPanel] = useState(false);
   const userNavRef = useRef<HTMLDivElement>(null);
 
+  const navigate = useNavigate()
+
   const {
     userAuth,
     userAuth: { access_token, profile_img },
   } = useUserContext();
 
-  // const handleBlur =()=>{
-  //   setTimeout(()=>{
-  //     setUserNavPanel(false)
-  //   },200)
+  
 
-  // }
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const query = e.currentTarget.value;
+
+  if (e.key === "Enter" && query.length > 0) {
+    navigate(`/search/${query}`);
+  }
+};
+
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -52,6 +58,7 @@ const Navbar = () => {
         >
           <input
             type="text"
+            onKeyDown={handleSearch}
             placeholder="Search"
             className="w-full md:w-auto bg-grey p-4 pl-6 pr-[12%] md:pr-6 rounded-full placeholder:text-dark-grey md:pl-12"
           />

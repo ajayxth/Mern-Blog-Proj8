@@ -173,9 +173,22 @@ export const getTrendingBlogs =async (req,res)=>{
 
 export const searchBlogs =async (req,res) =>{
   try {
-    const {tag,page} = req.body
+    const {tag,query,page} = req.body
 
-    const findQuery = {tags:tag,draft:false}
+    let findQuery
+    if(tag){
+      findQuery = {tags:tag,draft:false}
+    }else if(query){
+      const searchRegex = new RegExp(query,'i')
+      findQuery = {
+        draft: false,
+        $or: [
+          {title:searchRegex},
+          {des:searchRegex},
+          {tags:searchRegex},
+        ],
+      }
+    }
     const maxLimit = 2
 
     const blogs = await blogModel.find(findQuery)
@@ -197,9 +210,18 @@ export const searchBlogs =async (req,res) =>{
 
 export const searchBlogsCount =async(req,res)=>{
   try {
-    const {tag} = req.body
+    const {tag,query} = req.body
 
-    const findQuery = {tags:tag,draft:false}
+    const findQuery = tag
+      ? {tags:tag,draft:false}
+      : {
+          draft:false,
+          $or: [
+            {title:new RegExp(query,'i')},
+            {des:new RegExp(query,'i')},
+            {tags:new RegExp(query,'i')},
+          ],
+        }
 
     const count = await blogModel.countDocuments(findQuery)
 
