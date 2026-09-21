@@ -247,3 +247,26 @@ export const searchBlogsCount = async (req, res) => {
     });
   }
 };
+
+
+export const getBlog =async (req,res) =>{
+  try{
+    let {blog_id} = req.body
+    let incrementVal = 1
+
+    const blog=await blogModel.findOneAndUpdate({blog_id},{$inc:{"activity.total_reads":incrementVal}})
+    .populate("author","personal_info.fullname personal_info.username personal_info.profile_img")
+    .select("title des content banner activity publishedAt blog_id tags")
+
+    await userModel.findOneAndUpdate({"personal_info.username": blog.author.personal_info.username},{
+      $inc:{"account_info.total_reads":incrementVal}
+    })
+
+    return res.status(200).json({blog})
+
+  }catch(error){
+    return res.status(500).json({
+      error: err instanceof Error ? err.message : "Something went wrong",
+    });
+  }
+}

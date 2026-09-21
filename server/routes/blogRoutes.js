@@ -1,5 +1,5 @@
 import express from "express"
-import { createBlog, generateUploadUrl, getLatestBlogs, getTrendingBlogs,searchBlogs,allLatestBlogsCount,searchBlogsCount } from "../controller/blogController.js"
+import { createBlog, generateUploadUrl, getLatestBlogs, getTrendingBlogs,searchBlogs,allLatestBlogsCount,searchBlogsCount,getBlog } from "../controller/blogController.js"
 import { auth } from "../middleware/authMiddleware.js"
 
 const blogRouter = express.Router()
@@ -12,7 +12,7 @@ blogRouter.get("/trending-blogs",getTrendingBlogs)
 blogRouter.post("/search-blogs",searchBlogs)
 blogRouter.post("/search-blogs-count",searchBlogsCount)
 blogRouter.post("/all-latest-blogs-count",allLatestBlogsCount)
-
+blogRouter.post("/get-blog",getBlog)
 
 
 export default blogRouter
