@@ -4,9 +4,12 @@ import { useEditorContext } from "../context/EditorContext";
 import Tags from "./Tags";
 import axios from "axios";
 import { useUserContext } from "../context/UserContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 const PublishForm = () => {
+
+  const { blog_id } = useParams();
+
   const characterLimit = 200;
   const tagLimit = 10;
 
@@ -105,6 +108,7 @@ const PublishForm = () => {
 
     try {
       const blogObj = {
+        id:blog_id,
         title,
         banner,
         content,

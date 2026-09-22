@@ -22,7 +22,7 @@ export const generateUploadUrl = async (req, res) => {
 export const createBlog = async (req, res) => {
   const authorId = req.user;
 
-  const { title, banner, tags, content, des, draft } = req.body;
+  const { title, banner, tags, content, des, draft,id } = req.body;
   const isDraft = Boolean(draft);
 
   if (!title || !title.length) {
@@ -61,7 +61,7 @@ export const createBlog = async (req, res) => {
     ? tags.map((tag) => tag.toLowerCase())
     : [];
 
-  const blog_id =
+  const blog_id = id ||
     title
       .trim()
       .toLowerCase()
@@ -84,7 +84,24 @@ export const createBlog = async (req, res) => {
   });
 
   try {
-    const savedBlog = await blog.save();
+    if(id){
+      try{
+        const blog =await blogModel.findOneAndUpdate({blog_id},{title,des,banner,content,tags,draft:draft ? draft : false})
+
+      return res.status(200).json({
+        id: blog_id
+      })
+      }catch(error){
+        console.log("CREATE BLOG ERROR:", err);
+
+    return res.status(500).json({
+      error: "Failed to update blog."
+    });
+      }
+
+
+    }else{
+      const savedBlog = await blog.save();
 
     const incrementVal = isDraft ? 0 : 1;
 
@@ -103,6 +120,9 @@ export const createBlog = async (req, res) => {
     return res.status(200).json({
       id: savedBlog.blog_id,
     });
+
+    }
+    
   } catch (err) {
     console.log("CREATE BLOG ERROR:", err);
 
@@ -251,8 +271,8 @@ export const searchBlogsCount = async (req, res) => {
 
 export const getBlog =async (req,res) =>{
   try{
-    let {blog_id} = req.body
-    let incrementVal = 1
+    let {blog_id,draft,mode} = req.body
+    let incrementVal = mode != 'edit' ? 1 : 0
 
     const blog=await blogModel.findOneAndUpdate({blog_id},{$inc:{"activity.total_reads":incrementVal}})
     .populate("author","personal_info.fullname personal_info.username personal_info.profile_img")
@@ -261,6 +281,11 @@ export const getBlog =async (req,res) =>{
     await userModel.findOneAndUpdate({"personal_info.username": blog.author.personal_info.username},{
       $inc:{"account_info.total_reads":incrementVal}
     })
+    if(blog.draft && !draft){
+      return res.status(500).json({
+        error : "You cannot access drafted blogs."
+      })
+    }
 
     return res.status(200).json({blog})
 
