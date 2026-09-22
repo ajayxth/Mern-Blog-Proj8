@@ -25,7 +25,7 @@ const BlogPage = () => {
 
   const [blog, setBlog] = useState(blogStructure);
   const [similarBlog,setSimilarBlog] = useState(null)
-
+  const [isLikedByUser,setIsLikedByUser] = useState(false)
   const [loading, setLoading] = useState(true);
 
   const {
@@ -49,7 +49,7 @@ const BlogPage = () => {
       );
 
       setBlog(blog);
-      console.log(blog.content)
+      // console.log(blog.content)
 
       const {data} = await axios.post(import.meta.env.VITE_SERVER_DOMAIN + "/blog/search-blogs",{
         tag:blog.tags[0],limit:6,eliminate_blog: blog_id
@@ -82,7 +82,7 @@ const BlogPage = () => {
       {loading ? (
         <Loader />
       ) : (
-        <BlogContext.Provider value={{blog,setBlog}}>
+        <BlogContext.Provider value={{blog,setBlog,isLikedByUser,setIsLikedByUser}}>
           <div className="max-w-[900px] center py-10 max-lg:px-[5vw]">
             <img src={banner} className="aspect-video" alt="banner" />
 
@@ -138,7 +138,7 @@ const BlogPage = () => {
 
 
                         return (
-                          <AnimationWrapper keyValue={blog.blog_id} transition={{duration:1,delay:i*0.08}}>
+                          <AnimationWrapper key={i} keyValue={blog.blog_id} transition={{duration:1,delay:i*0.08}}>
                             <BlogPostCard content={blog} author={blog.author.personal_info} />
 
                           </AnimationWrapper>

@@ -2,6 +2,7 @@ import { nanoid } from "nanoid";
 import { CreateUploadUrl } from "../utils/CreateUploadUrl.js";
 import blogModel from "../models/blogModel.js";
 import userModel from "../models/userModel.js";
+import notificationModel from "../models/Notification.js";
 
 export const generateUploadUrl = async (req, res) => {
   try {
@@ -294,4 +295,64 @@ export const getBlog =async (req,res) =>{
       error: err instanceof Error ? err.message : "Something went wrong",
     });
   }
+}
+
+
+//likes
+
+export const likeBlog =async (req,res)=>{
+  const user_id = req.user
+
+  const {_id,isLikedByUser} = req.body
+  let incrementalValue = !isLikedByUser ? 1 : -1
+
+  try{
+    const blog = await blogModel.findOneAndUpdate({_id},{$inc:{"activity.total_likes": incrementalValue}})
+
+    if (!blog) {
+  return res.status(404).json({ error: "Blog not found." });
+}
+    if(!isLikedByUser){
+      let like = new notificationModel({
+        type: "like",
+        blog:blog._id,
+        notification_for:  blog.author,
+        user:user_id,
+
+      })
+      const notification = await like.save()
+      return res.status(200).json({
+        liked_by_user: true
+      })
+    }else{
+      const data =await notificationModel.findOneAndDelete({user:user_id, blog:_id,type:"like"})
+      return res.status(200).json({
+        liked_by_user: false
+      })
+    }
+  }catch(error){
+    console.log(error)
+    return res.status(500).json({
+      error: error instanceof Error ? error.message : "Something went wrong",
+    });
+  }
+
+}
+
+export const getIsLikedByUser =async (req,res)=>{
+  const user_id = req.user
+  const {_id } = req.body
+
+  try{
+    const result = await notificationModel.exists({user:user_id,type:"like",blog:_id})
+
+  return res.status(200).json({result})
+
+  }catch(error){
+    return res.status(500).json({
+      error: error instanceof Error ? error.message : "Something went wrong",
+    });
+  }
+
+
 }

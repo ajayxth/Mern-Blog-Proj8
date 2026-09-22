@@ -76,7 +76,7 @@ const UserAuthForm = ({ type }: UserAuthFormProps) => {
 
     userAuthThroughServer(serverRoute, formData);
 
-    console.log(formData);
+    // console.log(formData);
   };
 
   const handleGoogleAuth =async (e:React.MouseEvent<HTMLButtonElement>)=>{
