@@ -8,6 +8,7 @@ import { getFullDay } from "../common/date";
 import BlogInteraction from "../components/BlogInteraction";
 import { BlogPostCard } from "../components/BlogPostCard";
 import BlogContent from "../components/BlogContent";
+import CommentsContainer, { fetchComments } from "../components/CommentsContainer";
 
 const blogStructure = {
   title: "",
@@ -27,6 +28,10 @@ const BlogPage = () => {
   const [similarBlog,setSimilarBlog] = useState(null)
   const [isLikedByUser,setIsLikedByUser] = useState(false)
   const [loading, setLoading] = useState(true);
+  const [commentsWrapper,setCommentsWrapper] = useState(false)
+  const [totalParentCommentsLoaded,setTotalParentCommentsLoaded] = useState(0)
+  const [hasMoreComments,setHasMoreComments] = useState(false)
+
 
   const {
     title,
@@ -48,7 +53,17 @@ const BlogPage = () => {
         { blog_id },
       );
 
+      
+      blog.comments = await fetchComments({
+        blog_id: blog._id,
+        setParentCommentCountFun: setTotalParentCommentsLoaded,
+        setHasMoreComments,
+      })
+
+      // console.log("after->",blog)
+
       setBlog(blog);
+      
       // console.log(blog.content)
 
       const {data} = await axios.post(import.meta.env.VITE_SERVER_DOMAIN + "/blog/search-blogs",{
@@ -71,6 +86,10 @@ const BlogPage = () => {
     setBlog(blogStructure)
     setSimilarBlog(null)
     setLoading(true)
+    setIsLikedByUser(false)
+    // setCommentsWrapper(false)
+    setTotalParentCommentsLoaded(0)
+    setHasMoreComments(false)
   }
 
   useEffect(() => {
@@ -82,7 +101,11 @@ const BlogPage = () => {
       {loading ? (
         <Loader />
       ) : (
-        <BlogContext.Provider value={{blog,setBlog,isLikedByUser,setIsLikedByUser}}>
+        <BlogContext.Provider value={{blog,setBlog,isLikedByUser,setIsLikedByUser,commentsWrapper,setCommentsWrapper,totalParentCommentsLoaded,setTotalParentCommentsLoaded,hasMoreComments,setHasMoreComments}}>
+
+
+        <CommentsContainer />
+
           <div className="max-w-[900px] center py-10 max-lg:px-[5vw]">
             <img src={banner} className="aspect-video" alt="banner" />
 

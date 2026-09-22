@@ -3,6 +3,7 @@ import { CreateUploadUrl } from "../utils/CreateUploadUrl.js";
 import blogModel from "../models/blogModel.js";
 import userModel from "../models/userModel.js";
 import notificationModel from "../models/Notification.js";
+import commentModel from "../models/Comment.js"
 
 export const generateUploadUrl = async (req, res) => {
   try {
@@ -356,3 +357,122 @@ export const getIsLikedByUser =async (req,res)=>{
 
 
 }
+
+export const addComment = async (req, res) => {
+  const user_id = req.user;
+
+  const { _id, comment, blog_author,replying_to } = req.body;
+
+  if (!comment.length) {
+    return res.status(403).json({
+      error: "Write something to leave a comment.",
+    });
+  }
+
+  try {
+    // Create comment document
+    const commentObj ={
+      blog_id: _id,
+      blog_author,
+      comment,
+      commented_by: user_id,
+      isReply: Boolean(replying_to),
+    };
+    if(replying_to){
+      commentObj.parent = replying_to
+    }
+
+    const commentFile = await new commentModel(commentObj).save();
+
+    const {
+      comment: savedComment,
+      commentedAt,
+      children,
+    } = commentFile;
+
+    // Add comment to blog
+    const blog = await blogModel.findOneAndUpdate(
+      { _id },
+      { 
+        $push: {
+          comments: commentFile._id,
+        },
+        $inc: {
+          "activity.total_comments": 1,
+          "activity.total_parent_comments":replying_to ? 0: 1,
+        },
+      }
+    );
+
+    console.log("new comment created");
+
+    // Create notification
+    const notificationObj = {
+      type:replying_to ? "reply" : "comment",
+      blog: _id,
+      notification_for: blog_author,
+      user: user_id,
+      comment: commentFile._id,
+    };
+    if(replying_to){
+      notificationObj.replied_on_comment = replying_to
+      const replyingToCommentDoc =await commentModel.findOneAndUpdate({_id:replying_to},{$push:{children:commentFile._id}})
+      notificationObj.notification_for = replyingToCommentDoc.commented_by;
+      
+    }
+
+    await new notificationModel(notificationObj).save();
+
+    console.log("new notification created");
+
+    return res.status(200).json({
+      comment: savedComment,
+      commentedAt,
+      _id: commentFile._id,
+      user_id,
+      children,
+    });
+  } catch (error) {
+    console.log("ADD COMMENT ERROR:", error);
+
+    return res.status(500).json({
+      error:
+        error instanceof Error
+          ? error.message
+          : "Something went wrong",
+    });
+  }
+};
+
+
+export const getBlogComments =async (req,res)=>{
+  const {blog_id,skip} = req.body
+  const maxLimit = 5
+
+  try{
+    const comment = await commentModel.find({blog_id,isReply:false})
+  .populate("commented_by","personal_info.username personal_info.fullname personal_info.profile_img")
+  .populate({
+    path: "children",
+    populate: {
+      path: "commented_by",
+      select: "personal_info.username personal_info.fullname personal_info.profile_img",
+    },
+  })
+  .skip(skip)
+  .limit(maxLimit)
+  .sort({
+    "commentedAt":-1
+  })
+
+  return res.status(200).json(comment)
+  }catch(error){
+    return res.status(500).json({
+      error:
+        error instanceof Error
+          ? error.message
+          : "Something went wrong",
+    });
+  }
+
+} 

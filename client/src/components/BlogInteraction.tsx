@@ -6,7 +6,7 @@ import toast from "react-hot-toast"
 import axios from "axios"
 
 const BlogInteraction = () => {
-    let {blog,activity,blog:{_id,title,blog_id,activity:{total_comments},activity:{total_likes},author:{personal_info:{username:author_username}}},setBlog,isLikedByUser,setIsLikedByUser} = useContext(BlogContext)
+    let {blog,activity,blog:{_id,title,blog_id,activity:{total_comments},activity:{total_likes},author:{personal_info:{username:author_username}}},setBlog,isLikedByUser,setIsLikedByUser,setCommentsWrapper} = useContext(BlogContext)
 
     const {userAuth:{username,access_token}} = useUserContext()
 
@@ -69,7 +69,7 @@ const BlogInteraction = () => {
       </button>
       <p className="text-xl text-dark-grey">{total_likes}</p>
 
-      <button className="w-10 h-10 rounded-full flex items-center justify-center bg-grey/80">
+      <button onClick={()=>setCommentsWrapper(prev=>!prev)} className="w-10 cursor-pointer active:scale-90 duration-200 h-10 rounded-full flex items-center justify-center bg-grey/80">
         <i className="fi fi-rr-comment-dots"></i>
       </button>
       <p className="text-xl text-dark-grey">{total_comments}</p>

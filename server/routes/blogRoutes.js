@@ -1,5 +1,5 @@
 import express from "express"
-import { createBlog, generateUploadUrl, getLatestBlogs, getTrendingBlogs,searchBlogs,allLatestBlogsCount,searchBlogsCount,getBlog,likeBlog,getIsLikedByUser } from "../controller/blogController.js"
+import { createBlog, generateUploadUrl, getLatestBlogs, getTrendingBlogs,searchBlogs,allLatestBlogsCount,searchBlogsCount,getBlog,likeBlog,getIsLikedByUser, addComment,getBlogComments } from "../controller/blogController.js"
 import { auth } from "../middleware/authMiddleware.js"
 
 
@@ -16,6 +16,10 @@ blogRouter.post("/all-latest-blogs-count",allLatestBlogsCount)
 blogRouter.post("/get-blog",getBlog)
 blogRouter.post("/like-blog",auth,likeBlog)
 blogRouter.post("/isLiked-by-user",auth,getIsLikedByUser)
+blogRouter.post("/add-comment",auth,addComment)
+blogRouter.post("/get-blog-comments",getBlogComments)
+
+
 
 
 
