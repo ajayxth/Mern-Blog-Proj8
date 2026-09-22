@@ -175,11 +175,11 @@ export const getTrendingBlogs = async (req, res) => {
 
 export const searchBlogs = async (req, res) => {
   try {
-    const { tag, query, author, page } = req.body;
+    const { tag, query, author, page,limit,eliminate_blog } = req.body;
 
     let findQuery;
     if (tag) {
-      findQuery = { tags: tag, draft: false };
+      findQuery = { tags: tag, draft: false,blog_id:{$ne:eliminate_blog} };
     } else if (query) {
       const searchRegex = new RegExp(query, "i");
       findQuery = {
@@ -193,7 +193,7 @@ export const searchBlogs = async (req, res) => {
     } else if (author) {
       findQuery = { author, draft: false };
     }
-    const maxLimit = 2;
+    const maxLimit = limit ? limit : 2;
 
     const blogs = await blogModel
       .find(findQuery)

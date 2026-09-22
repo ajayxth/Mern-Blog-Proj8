@@ -6,12 +6,13 @@ import AnimationWrapper from "../common/animation";
 import Loader from "../components/Loader";
 import { getFullDay } from "../common/date";
 import BlogInteraction from "../components/BlogInteraction";
+import { BlogPostCard } from "../components/BlogPostCard";
+import BlogContent from "../components/BlogContent";
 
 const blogStructure = {
   title: "",
   des: "",
   content: [],
-  tags: [],
   author: { personal_info: [] },
   banner: "",
   publishedAt: "",
@@ -23,6 +24,7 @@ const BlogPage = () => {
   const { blog_id } = useParams();
 
   const [blog, setBlog] = useState(blogStructure);
+  const [similarBlog,setSimilarBlog] = useState(null)
 
   const [loading, setLoading] = useState(true);
 
@@ -47,6 +49,15 @@ const BlogPage = () => {
       );
 
       setBlog(blog);
+      console.log(blog.content)
+
+      const {data} = await axios.post(import.meta.env.VITE_SERVER_DOMAIN + "/blog/search-blogs",{
+        tag:blog.tags[0],limit:6,eliminate_blog: blog_id
+      })
+      setSimilarBlog(data.blogs)
+      // console.log(data.blogs)
+
+      
     } catch (error) {
       if (error instanceof Error) {
         toast.error(error.message);
@@ -56,9 +67,16 @@ const BlogPage = () => {
     }
   };
 
+  const resetStates = ()=>{
+    setBlog(blogStructure)
+    setSimilarBlog(null)
+    setLoading(true)
+  }
+
   useEffect(() => {
+    resetStates()
     fetchBlog();
-  }, []);
+  }, [blog_id]);
   return (
     <AnimationWrapper>
       {loading ? (
@@ -93,6 +111,47 @@ const BlogPage = () => {
             </div>
 
             <BlogInteraction />
+
+            <div className="my-12 font-gelasio blog-page-content">
+              {
+                content[0].blocks.map((block,i)=>{
+                  return (
+                    <div key={i} className="my-4 md:my-8">
+                      <BlogContent block={block} />
+
+                    </div>
+                  )
+                })
+              }
+            </div>
+
+
+            <BlogInteraction />
+
+            {
+              similarBlog != null && similarBlog.length ? 
+                <>
+                    <h1 className="text-2xl mt-14 mb-10 font-medium">Similar Blogs</h1>
+
+                    {
+                      similarBlog.map((blog,i)=>{
+
+
+                        return (
+                          <AnimationWrapper keyValue={blog.blog_id} transition={{duration:1,delay:i*0.08}}>
+                            <BlogPostCard content={blog} author={blog.author.personal_info} />
+
+                          </AnimationWrapper>
+                        )
+                      })
+                    }
+                </>
+              :
+              ""
+            }
+
+
+
           </div>
         </BlogContext.Provider>
       )}
