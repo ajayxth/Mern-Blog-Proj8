@@ -79,6 +79,10 @@ const CommentField = ({ action,index=undefined,replyingTo=undefined,setReplying 
 
     setTotalParentCommentsLoaded(prev=>prev+parentCommentIncrementVal)
 
+    if (replyingTo && setReplying) {
+      setReplying(false)
+    }
+
 
     
 

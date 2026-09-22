@@ -476,3 +476,61 @@ export const getBlogComments =async (req,res)=>{
   }
 
 } 
+
+export const deleteComment = async (req, res) => {
+  const user_id = req.user;
+  const { _id } = req.body;
+
+  try {
+    const comment = await commentModel.findById(_id);
+
+    if (!comment) {
+      return res.status(404).json({ error: "Comment not found." });
+    }
+
+    if (!user_id || !comment.commented_by || comment.commented_by.toString() !== String(user_id)) {
+      return res.status(403).json({ error: "You can only delete your own comment." });
+    }
+
+    const commentsToDelete = [comment._id];
+    let parentIds = [comment._id];
+
+    while (parentIds.length) {
+      const children = await commentModel
+        .find({ parent: { $in: parentIds } })
+        .select("_id");
+      parentIds = children.map((child) => child._id);
+      commentsToDelete.push(...parentIds);
+    }
+
+    await commentModel.deleteMany({ _id: { $in: commentsToDelete } });
+    await notificationModel.deleteMany({ comment: { $in: commentsToDelete } });
+
+    const update = {
+      $pull: { comments: { $in: commentsToDelete } },
+      $inc: {
+        "activity.total_comments": -commentsToDelete.length,
+        "activity.total_parent_comments": comment.isReply ? 0 : -1,
+      },
+    };
+
+    await blogModel.findByIdAndUpdate(comment.blog_id, update);
+
+    if (comment.parent) {
+      await commentModel.findByIdAndUpdate(comment.parent, {
+        $pull: { children: comment._id },
+      });
+    }
+
+    return res.status(200).json({
+      deleted_id: comment._id,
+      deleted_count: commentsToDelete.length,
+      deleted_parent_count: comment.isReply ? 0 : 1,
+    });
+  } catch (error) {
+    console.log("DELETE COMMENT ERROR:", error);
+    return res.status(500).json({
+      error: error instanceof Error ? error.message : "Something went wrong",
+    });
+  }
+};

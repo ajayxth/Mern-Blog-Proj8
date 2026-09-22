@@ -3,15 +3,55 @@ import { getFullDay } from "../common/date"
 import { useUserContext } from "../context/UserContext"
 import { useState } from "react"
 import CommentField from "./CommentField"
+import { useContext } from "react"
+import axios from "axios"
+import { BlogContext } from "../pages/BlogPage"
 
 const CommentCard = ({index,leftVal,commentData}) => {
     const {commented_by,commentedAt,comment,_id}= commentData
     const {profile_img,fullname,username} = commented_by?.personal_info || {}
 
-    const {userAuth:{access_token}} = useUserContext()
+    const {userAuth:{access_token,username:authUsername}} = useUserContext()
+    const {setBlog,setTotalParentCommentsLoaded} = useContext(BlogContext)
 
     const [isReplying,setIsReplying] = useState(false)
     const [showReplies, setShowReplies] = useState(true)
+
+    const removeComment = (comments, commentId) => comments
+        .filter((currentComment) => currentComment._id !== commentId)
+        .map((currentComment) => ({
+            ...currentComment,
+            children: currentComment.children
+                ? removeComment(currentComment.children, commentId)
+                : currentComment.children,
+        }))
+
+    const handleDelete = async () => {
+        if (!access_token) return
+
+        try {
+            const { data } = await axios.delete(
+                import.meta.env.VITE_SERVER_DOMAIN + "/blog/delete-comment",
+                {
+                    data: { _id },
+                    headers: { Authorization: `Bearer ${access_token}` },
+                },
+            )
+
+            setBlog((currentBlog) => ({
+                ...currentBlog,
+                comments: removeComment(currentBlog.comments, _id),
+                activity: {
+                    ...currentBlog.activity,
+                    total_comments: currentBlog.activity.total_comments - data.deleted_count,
+                    total_parent_comments: currentBlog.activity.total_parent_comments - data.deleted_parent_count,
+                },
+            }))
+            setTotalParentCommentsLoaded((count) => Math.max(0, count - data.deleted_parent_count))
+        } catch (error) {
+            toast.error(axios.isAxiosError(error) ? error.response?.data?.error || "Failed to delete comment." : "Failed to delete comment.")
+        }
+    }
 
     const handleReplyClick = ()=>{
         try{
@@ -35,6 +75,16 @@ const CommentCard = ({index,leftVal,commentData}) => {
                 <img className="w-6 h-6 rounded-full" src={profile_img} alt="profile" />
                 <p className="line-clamp-1">{fullname} @ {username}</p>
                 <p className="min-w-fit">{getFullDay(commentedAt)}</p>
+                {authUsername && username && authUsername === username ? (
+                    <button
+                        onClick={handleDelete}
+                        title="Delete comment"
+                        aria-label="Delete comment"
+                        className="ml-auto text-dark-grey hover:text-red-500 cursor-pointer"
+                    >
+                        <i className="fi fi-rr-trash" />
+                    </button>
+                ) : null}
             </div>
 
             <p className="font-gelasio text-xl ml-5">{comment}</p>
