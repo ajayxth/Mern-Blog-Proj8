@@ -1,4 +1,4 @@
-import { Link, Outlet, useNavigate } from "react-router-dom";
+import { Link, Outlet, useNavigate,useLocation } from "react-router-dom";
 import logo from "../assets/logo-horizontal.svg";
 import { useEffect, useRef, useState } from "react";
 import { useUserContext } from "../context/UserContext";
@@ -10,6 +10,7 @@ const Navbar = () => {
   const userNavRef = useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate()
+  const location = useLocation();
 
   const {
     userAuth,
@@ -43,9 +44,12 @@ const Navbar = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+  useEffect(() => {
+  setUserNavPanel(false);
+}, [location.pathname]);
   return (
     <>
-      <nav className="navbar">
+      <nav className="navbar z-50">
         <Link to="/" className="flex-none w-10">
           <img src={logo} className="w-full" />
         </Link>

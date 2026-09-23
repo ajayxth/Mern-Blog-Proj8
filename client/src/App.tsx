@@ -8,6 +8,8 @@ import SearchPage from "./pages/SearchPage";
 import PageNotFound from "./pages/PageNotFound";
 import ProfilePage from "./components/ProfilePage";
 import BlogPage from "./pages/BlogPage";
+import SideNav from "./components/SideNav";
+import ChangePassword from "./pages/ChangePassword";
 
 const App = () => {
 
@@ -23,6 +25,11 @@ const App = () => {
 
         <Route path="/" element={<Navbar />}>
           <Route index element={<HomePage />} />
+          <Route path="settings" element={<SideNav />}>
+            <Route path="edit-profile" element={"Edit Profile"} />
+            <Route path="change-password" element={<ChangePassword />} />
+
+          </Route>
           <Route path="signin" element={<UserAuthForm type="sign-in" />} />
           <Route path="signup" element={<UserAuthForm type="sign-up" />} />
           <Route path="search/:query" element={<SearchPage />} />

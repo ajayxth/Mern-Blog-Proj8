@@ -160,7 +160,7 @@ const googleAuth = async (req, res) => {
         "personal_info.fullname personal_info.username personal_info.profile_img google_auth",
       );
 
-     // User already exists
+    // User already exists
     if (user) {
       if (!user.google_auth) {
         return res.status(403).json({
@@ -187,10 +187,9 @@ const googleAuth = async (req, res) => {
       user = await user.save();
     }
 
-
     return res.status(200).json({
       success: true,
-      user: formatDataToSend(user)
+      user: formatDataToSend(user),
     });
   } catch (error) {
     console.log(error);
@@ -201,4 +200,54 @@ const googleAuth = async (req, res) => {
   }
 };
 
-export { signup, signin, googleAuth };
+const changePassword = async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  if (
+    !passwordRegex.test(currentPassword) ||
+    !passwordRegex.test(newPassword)
+  ) {
+    return res.status(400).json({
+      error:"Password needs to be  6-20 character long. Atleast one uppercase,one numerical."
+    })
+  }
+
+  try{
+    const user=await userModel.findOne({_id:req.user})
+
+    if(!user){
+      return res.status(400).json({
+      error:"User not found.."
+    })
+    }
+
+    if(user.google_auth){
+      return res.status(400).json({
+      error:"User logged in through google."
+    })
+    }
+
+    const checkCorrectPassword =await bcrypt.compare(currentPassword,user.personal_info.password)
+
+    if (!checkCorrectPassword) {
+    return res.status(401).json({
+      error: "Current password is incorrect",
+    });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword,10)
+
+    const u=await userModel.findOneAndUpdate({_id:req.user},{"personal_info.password":hashedPassword})
+
+    return res.status(200).json({status:'Password Changed'})
+
+
+  }catch(error){
+    console.log(error);
+  return res.status(500).json({
+    error: "Something went wrong.",
+  });
+  }
+};
+
+export { signup, signin, googleAuth,changePassword };

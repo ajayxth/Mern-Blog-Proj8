@@ -13,7 +13,7 @@ const UserNavigationPanel = ({closePanel}:UserNavigationPanelProps) => {
     userAuth: { username },setUserAuth
   } = useUserContext();
 
-  const signOutUser = ()=>{
+   const signOutUser = ()=>{
     removeFromSession("user")
     setUserAuth({access_token:null})
     closePanel()
