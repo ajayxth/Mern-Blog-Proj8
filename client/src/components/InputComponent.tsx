@@ -7,6 +7,7 @@ type InputBoxProps = {
   value?: string;
   placeholder: string;
   icon: string;
+  disable?: boolean
 };
 
 const InputBox = ({
@@ -16,6 +17,7 @@ const InputBox = ({
   value,
   placeholder,
   icon,
+  disable = false
 }: InputBoxProps) => {
 
     const [passwordVisible,setPasswordVisible] = useState(false)
@@ -28,6 +30,7 @@ const InputBox = ({
         defaultValue={value}
         id={id}
         className="input-box"
+        disabled={disable}
       />
 
       <i className={"fi " + icon + " input-icon"}></i>

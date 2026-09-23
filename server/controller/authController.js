@@ -250,4 +250,23 @@ const changePassword = async (req, res) => {
   }
 };
 
-export { signup, signin, googleAuth,changePassword };
+
+const updateProfileImage = async (req,res)=>{
+  const {url} = req.body
+
+  try{
+    await userModel.findOneAndUpdate({_id:req.user},{
+      "personal_info.profile_img":url
+    })
+
+    res.status(200).json({profile_img:url})
+  }catch(error){
+    console.log(error);
+  return res.status(500).json({
+    error: "Something went wrong.",
+  });
+  }
+
+}
+
+export { signup, signin, googleAuth,changePassword,updateProfileImage };

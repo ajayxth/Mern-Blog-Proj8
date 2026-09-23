@@ -10,6 +10,7 @@ import ProfilePage from "./components/ProfilePage";
 import BlogPage from "./pages/BlogPage";
 import SideNav from "./components/SideNav";
 import ChangePassword from "./pages/ChangePassword";
+import EditProfile from "./pages/EditProfile";
 
 const App = () => {
 
@@ -26,7 +27,7 @@ const App = () => {
         <Route path="/" element={<Navbar />}>
           <Route index element={<HomePage />} />
           <Route path="settings" element={<SideNav />}>
-            <Route path="edit-profile" element={"Edit Profile"} />
+            <Route path="edit-profile" element={<EditProfile />} />
             <Route path="change-password" element={<ChangePassword />} />
 
           </Route>
