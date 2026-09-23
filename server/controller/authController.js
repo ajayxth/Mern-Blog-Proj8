@@ -269,4 +269,84 @@ const updateProfileImage = async (req,res)=>{
 
 }
 
-export { signup, signin, googleAuth,changePassword,updateProfileImage };
+const updateProfile = async (req, res) => {
+  const { username, bio, social_links } = req.body;
+  const bioLimit = 150;
+
+  if (!username || username.length < 3) {
+    return res.status(403).json({
+      error: "Username must be at least 3 characters long.",
+    });
+  }
+
+  if (bio && bio.length > bioLimit) {
+    return res.status(403).json({
+      error: "Bio must be at most 150 characters long.",
+    });
+  }
+
+  const socialLinksArr = Object.keys(social_links || {});
+
+  try {
+    for (const key of socialLinksArr) {
+      const link = social_links[key];
+
+      if (link.length) {
+        const hostname = new URL(link).hostname;
+
+        if (
+          !hostname.includes(`${key}.com`) &&
+          key !== "website"
+        ) {
+          return res.status(403).json({
+            error: `${key} link is invalid`,
+          });
+        }
+      }
+    }
+  } catch (error) {
+    return res.status(400).json({
+      error: "You must provide full social links with http(s) included.",
+    });
+  }
+
+  try {
+    const updateObj = {
+      "personal_info.username": username,
+      "personal_info.bio": bio,
+      social_links,
+    };
+
+    const updatedUser = await userModel.findOneAndUpdate(
+      { _id: req.user },
+      updateObj,
+      {
+        runValidators: true,
+      }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({
+        error: "User not found.",
+      });
+    }
+
+    return res.status(200).json({
+      username,
+    });
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(400).json({
+        error: "Username already taken.",
+      });
+    }
+
+    console.log(error);
+
+    return res.status(500).json({
+      error: "Failed to update profile.",
+    });
+  }
+};
+
+export { signup, signin, googleAuth,changePassword,updateProfileImage, updateProfile };

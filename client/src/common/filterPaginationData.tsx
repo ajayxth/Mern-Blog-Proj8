@@ -9,6 +9,7 @@ interface FilterPaginationDataProps {
   data: Blog[];
   page: number;
   countRoute: string;
+  access_token?: string | null;
   data_to_send?: Record<string, unknown>;
 }
 
@@ -19,6 +20,7 @@ export const filterPaginationData = async ({
   data,
   page,
   countRoute,
+  access_token,
   data_to_send={},
 }:FilterPaginationDataProps) => {
   let obj;
@@ -34,6 +36,9 @@ export const filterPaginationData = async ({
       const { data: responseData } = await axios.post(
         import.meta.env.VITE_SERVER_DOMAIN + countRoute,
         data_to_send,
+        access_token
+          ? { headers: { Authorization: `Bearer ${access_token}` } }
+          : undefined,
       );
 
       const { totalDocs } = responseData;
@@ -45,6 +50,7 @@ export const filterPaginationData = async ({
       };
     } catch (err) {
       console.log(err);
+      throw err;
     }
   }
 

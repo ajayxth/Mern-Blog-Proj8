@@ -7,6 +7,7 @@ import InputBox from "../components/InputComponent";
 import { uploadImage } from "../common/aws";
 import toast from "react-hot-toast";
 import { storeInSession } from "../common/session";
+import { useConfirm } from "../context/ConfirmContext";
 
 const profileDataStructure = {
   personal_info: {
@@ -40,6 +41,12 @@ const EditProfile = () => {
   const profileImgEle = useRef();
   const [updatedProfileImg, setUpdatedProfileImg] = useState(null);
   const [loadingImgUpload, setLoadingImgUpload] = useState(false);
+  const [loadingProfileUpdate, setLoadingProfileUpdate] = useState(false);
+  const confirm = useConfirm();
+
+
+
+  const editProfileForm = useRef()
 
   const {
     personal_info: {
@@ -97,6 +104,12 @@ const EditProfile = () => {
   const handleImageUpload = async (e) => {
     e.preventDefault();
     if (updatedProfileImg) {
+      const confirmed = await confirm({
+        title: "Update profile image",
+        message: "Replace your current profile image?",
+        confirmLabel: "Update",
+      });
+      if (!confirmed) return;
       const loadingToast = toast.loading("Uploading img...");
       try {
         setLoadingImgUpload(true);
@@ -132,12 +145,69 @@ const EditProfile = () => {
       }
     }
   };
+
+  const handleSubmit =async (e: React.MouseEvent<HTMLButtonElement>)=>{
+    e.preventDefault()
+
+    if (!editProfileForm.current) return;
+
+    const form = new FormData(editProfileForm.current)
+
+    const formData: Record<string, string> = {};
+
+    for(const[key,value] of form.entries()){
+        formData[key] = value.toString()
+    }
+    const {username,bio,youtube,facebook,twitter,website,github,instagram} = formData
+
+    if(username.length<3){
+        return toast.error("Username must be atleast 3 characters long.")
+    }
+    if(bio.length>bioLimit){
+        return toast.error("Bio must be atmost 150 characters.")
+    }
+    const confirmed = await confirm({
+      title: "Update profile",
+      message: "Save these profile changes?",
+      confirmLabel: "Update",
+    });
+    if (!confirmed) return;
+    const loadingToast = toast.loading("Updating Profile...")
+
+    try{
+        
+        const {data}=await axios.post(import.meta.env.VITE_SERVER_DOMAIN + "/api/auth/update-profile",{
+            username,bio,social_links:{youtube,facebook,twitter,website,github,instagram}
+        },{
+            headers:{
+                "Authorization" : `Bearer ${access_token}`
+            }
+        })
+
+        if(userAuth.username != data.username){
+            const newUserAuth = {...userAuth,username:data.username}
+            storeInSession("user",JSON.stringify(newUserAuth))
+            setUserAuth(newUserAuth)
+        }
+        toast.success("Profile updated.")
+    }catch(error){
+        if (axios.isAxiosError(error)) {
+          toast.error(error.response?.data?.error || "Failed to upload image.");
+        } else {
+          toast.error("Something went wrong.");
+        }
+    }finally{
+        toast.dismiss(loadingToast);
+    }
+
+
+  }
   return (
     <AnimationWrapper>
       {loading ? (
         <Loader />
       ) : (
-        <form>
+        <form ref={editProfileForm}>
           <h1 className="max-md:hidden">Edit Profile</h1>
 
           <div className="flex flex-col lg:flex-row items-start py-10 gap-8 lg:gap-10">
@@ -168,7 +238,7 @@ const EditProfile = () => {
                 onClick={handleImageUpload}
                 className="btn-light mt-5 max-lg:center lg:w-full cursor-pointer px-10"
               >
-                Upload
+                {loadingImgUpload ? "Uploading..." : "Upload"}
               </button>
             </div>
 
@@ -197,6 +267,7 @@ const EditProfile = () => {
               </div>
 
               <InputBox
+              name="username"
                 type="text"
                 value={profile_username}
                 placeholder="Username"
@@ -243,8 +314,10 @@ const EditProfile = () => {
                 })}
               </div>
 
-              <button className="btn-dark w-auto px-10" type="submit">
-                Update
+              <button onClick={handleSubmit} className="btn-dark w-auto px-10" type="submit">
+                {
+                    loadingProfileUpdate ? "Updating..." : "Update"
+                }
               </button>
             </div>
           </div>

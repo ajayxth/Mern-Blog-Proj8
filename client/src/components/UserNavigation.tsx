@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import AnimationWrapper from "../common/animation";
 import { useUserContext } from "../context/UserContext";
 import { removeFromSession } from "../common/session";
+import { useConfirm } from "../context/ConfirmContext";
 
 type UserNavigationPanelProps = {
   closePanel: () => void;
@@ -12,8 +13,15 @@ const UserNavigationPanel = ({closePanel}:UserNavigationPanelProps) => {
   const {
     userAuth: { username },setUserAuth
   } = useUserContext();
+  const confirm = useConfirm();
 
-   const signOutUser = ()=>{
+   const signOutUser = async ()=>{
+    const confirmed = await confirm({
+      title: "Sign out",
+      message: "Are you sure you want to sign out?",
+      confirmLabel: "Sign out",
+    });
+    if (!confirmed) return;
     removeFromSession("user")
     setUserAuth({access_token:null})
     closePanel()

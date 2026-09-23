@@ -7,7 +7,7 @@ const SideNav = () => {
     userAuth: { access_token },
   } = useUserContext();
 
-  const page = location.pathname.split("/")[2]
+  const page = location.pathname.split("/")[2] ?? "blogs"
 
   
   const [pageState,setPageState] = useState(page.replace("-"," "))
@@ -35,10 +35,10 @@ const changePageState = (e: React.MouseEvent<HTMLButtonElement>) => {
 
 useEffect(()=>{
     setShowSideNav(false)
-    pageStatetab.current.click()
+    pageStatetab.current?.click()
 
 },[pageState])
-  return access_token === null ? (
+  return !access_token ? (
     <Navigate to={"/signin"} />
   ) : (
     <>

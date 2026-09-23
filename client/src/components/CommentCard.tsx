@@ -6,6 +6,7 @@ import CommentField from "./CommentField"
 import { useContext } from "react"
 import axios from "axios"
 import { BlogContext } from "../pages/BlogPage"
+import { useConfirm } from "../context/ConfirmContext"
 
 const CommentCard = ({index,leftVal,commentData}) => {
     const {commented_by,commentedAt,comment,_id}= commentData
@@ -13,6 +14,7 @@ const CommentCard = ({index,leftVal,commentData}) => {
 
     const {userAuth:{access_token,username:authUsername}} = useUserContext()
     const {setBlog,setTotalParentCommentsLoaded} = useContext(BlogContext)
+    const confirm = useConfirm()
 
     const [isReplying,setIsReplying] = useState(false)
     const [showReplies, setShowReplies] = useState(true)
@@ -28,6 +30,13 @@ const CommentCard = ({index,leftVal,commentData}) => {
 
     const handleDelete = async () => {
         if (!access_token) return
+        const confirmed = await confirm({
+            title: "Delete comment",
+            message: "This comment and its replies will be permanently deleted.",
+            confirmLabel: "Delete",
+            danger: true,
+        })
+        if (!confirmed) return
 
         try {
             const { data } = await axios.delete(

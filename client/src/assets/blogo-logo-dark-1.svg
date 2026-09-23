@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="120" viewBox="0 0 480 120" role="img" aria-labelledby="title desc">
+  <title id="title">Blogo logo, concept 1, dark mode</title>
+  <desc id="desc">A warm coral folded page icon beside the Blogo wordmark on a dark background.</desc>
+  <rect x="8" y="14" width="92" height="92" rx="28" fill="#263341"/>
+  <path d="M32 37h25c14 0 22 7 22 18 0 8-5 14-13 16 10 2 16 9 16 19 0 13-10 21-26 21H32V37Zm19 29c8 0 12-3 12-9s-4-9-12-9h-4v18h4Zm3 29c9 0 13-4 13-10s-4-10-13-10h-7v20h7Z" fill="#FF8A68" transform="translate(0 -8)"/>
+  <path d="M75 31h14v20H75z" rx="4" fill="#FFC47D"/>
+  <text x="122" y="82" fill="#F4F1EA" font-family="Inter, Arial, sans-serif" font-size="64" font-weight="750" letter-spacing="-3">blog<tspan fill="#FF8A68">o</tspan></text>
+  <path d="M125 97h95" stroke="#FFC47D" stroke-width="4" stroke-linecap="round"/>
+</svg>

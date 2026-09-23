@@ -5,6 +5,7 @@ import Tags from "./Tags";
 import axios from "axios";
 import { useUserContext } from "../context/UserContext";
 import { useNavigate, useParams } from "react-router-dom";
+import { useConfirm } from "../context/ConfirmContext";
 
 const PublishForm = () => {
 
@@ -25,6 +26,7 @@ const PublishForm = () => {
   } = useEditorContext();
 
   const navigate = useNavigate();
+  const confirm = useConfirm();
 
   // console.log(blog.title);
   // console.log(blog.banner);
@@ -87,7 +89,9 @@ const PublishForm = () => {
   };
 
   const publishForm = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (e.currentTarget.classList.contains("disabled")) {
+    const button = e.currentTarget;
+
+    if (button.classList.contains("disabled")) {
       return;
     }
     if (!title) {
@@ -102,9 +106,16 @@ const PublishForm = () => {
       return toast.error("Enter at least 1 tag to help us rank your blog.");
     }
 
+    const confirmed = await confirm({
+      title: blog_id ? "Update blog" : "Publish blog",
+      message: blog_id ? "Save these changes to your blog?" : "Publish this blog now?",
+      confirmLabel: blog_id ? "Update" : "Publish",
+    });
+    if (!confirmed) return;
+
     const loadingToast = toast.loading("Publishing your blog...");
 
-    e.currentTarget.classList.add("disabled");
+    button.classList.add("disabled");
 
     try {
       const blogObj = {
@@ -116,7 +127,7 @@ const PublishForm = () => {
         tags,
         draft: false,
       };
-      axios.post(
+      await axios.post(
         import.meta.env.VITE_SERVER_DOMAIN + "/blog/create-blog",
         blogObj,
         {
@@ -125,7 +136,7 @@ const PublishForm = () => {
           },
         },
       );
-      e.currentTarget.classList.remove("disabled");
+      button.classList.remove("disabled");
 
       toast.dismiss(loadingToast);
       toast.success("Blog published Successfully.");
@@ -134,7 +145,7 @@ const PublishForm = () => {
         navigate("/");
       }, 500);
     } catch (err) {
-      e.currentTarget.classList.remove("disabled");
+      button.classList.remove("disabled");
       toast.dismiss(loadingToast);
 
       if (axios.isAxiosError(err)) {
@@ -177,7 +188,6 @@ const PublishForm = () => {
           <input
             type="text"
             placeholder="Blog Title"
-            defaultValue={title}
             value={title}
             className="input-box pl-4"
             onChange={handleBlogTitleChange}
@@ -188,7 +198,6 @@ const PublishForm = () => {
           </p>
           <textarea
             maxLength={characterLimit}
-            defaultValue={des}
             value={des}
             className="h-40 resize-none leading-7 input-box pl-4"
             onChange={handleBlogDescriptionChange}

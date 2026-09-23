@@ -10,6 +10,7 @@ import { tools } from "./ToolsComponent";
 import { uploadImage } from "../common/aws";
 import axios from "axios";
 import { useUserContext } from "../context/UserContext";
+import { useConfirm } from "../context/ConfirmContext";
 
 const BlogEditor = () => {
   const blogBannerRef = useRef<HTMLImageElement>(null);
@@ -29,6 +30,7 @@ const BlogEditor = () => {
   const {
       userAuth: { access_token },
     } = useUserContext();
+  const confirm = useConfirm();
   
 
   const handleTitleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -84,15 +86,24 @@ const BlogEditor = () => {
   };
 
   const handleSaveDraft = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (e.currentTarget.classList.contains("disabled")) {
+    const button = e.currentTarget;
+
+    if (button.classList.contains("disabled")) {
       return;
     }
     if (!title.trim()) {
       return toast.error("Write title before saving as draft.");
     }
 
+    const confirmed = await confirm({
+      title: "Save draft",
+      message: "Save the current blog as a draft?",
+      confirmLabel: "Save draft",
+    });
+    if (!confirmed) return;
+
     const loadingToast = toast.loading("Saving draft...");
-    e.currentTarget.classList.add("disabled");
+    button.classList.add("disabled");
 
     try {
       let blogContent = content;
@@ -137,7 +148,7 @@ const BlogEditor = () => {
         toast.error("Something went wrong.");
       }
     } finally {
-      e.currentTarget.classList.remove("disabled");
+      button.classList.remove("disabled");
     }
   };
 

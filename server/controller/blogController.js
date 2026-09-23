@@ -25,7 +25,7 @@ export const createBlog = async (req, res) => {
   const authorId = req.user;
 
   const { title, banner, tags, content, des, draft,id } = req.body;
-  const isDraft = Boolean(draft);
+  const isDraft = draft === true || draft === "true";
 
   if (!title || !title.length) {
     return res.status(403).json({
@@ -88,7 +88,34 @@ export const createBlog = async (req, res) => {
   try {
     if(id){
       try{
-        const blog =await blogModel.findOneAndUpdate({blog_id},{title,des,banner,content,tags,draft:draft ? draft : false})
+        const existingBlog = await blogModel.findOne({ blog_id, author: authorId });
+
+        if (!existingBlog) {
+          return res.status(404).json({ error: "Blog not found." });
+        }
+
+        const blog = await blogModel.findOneAndUpdate(
+          { blog_id, author: authorId },
+          {
+            title,
+            des: des || "",
+            banner: banner || "",
+            content: content || { blocks: [] },
+            tags: lowercaseTags,
+            draft: isDraft,
+          },
+          { new: true },
+        );
+
+        if (!blog) {
+          return res.status(404).json({ error: "Blog not found." });
+        }
+
+        if (existingBlog.draft !== isDraft) {
+          await userModel.findByIdAndUpdate(authorId, {
+            $inc: { "account_info.total_posts": isDraft ? -1 : 1 },
+          });
+        }
 
       return res.status(200).json({
         id: blog_id
@@ -191,6 +218,26 @@ export const getTrendingBlogs = async (req, res) => {
   } catch (err) {
     return res.status(500).json({
       error: err instanceof Error ? err.message : "Something went wrong",
+    });
+  }
+};
+
+export const getAlgorithmBlogs = async (req, res) => {
+  try {
+    const blogs = await blogModel
+      .find({ draft: false })
+      .populate(
+        "author",
+        "personal_info.profile_img personal_info.username personal_info.fullname -_id",
+      )
+      .sort({ publishedAt: -1 })
+      .select("blog_id title des banner activity tags publishedAt author -_id")
+      .limit(30);
+
+    return res.status(200).json({ blogs });
+  } catch (error) {
+    return res.status(500).json({
+      error: error instanceof Error ? error.message : "Something went wrong",
     });
   }
 };
@@ -529,6 +576,84 @@ export const deleteComment = async (req, res) => {
     });
   } catch (error) {
     console.log("DELETE COMMENT ERROR:", error);
+    return res.status(500).json({
+      error: error instanceof Error ? error.message : "Something went wrong",
+    });
+  }
+};
+
+
+export const userWrittenBlogs =async (req,res)=>{
+  const user_id =req.user
+  
+  const {page,draft,query,deletedDocCount} = req.body
+
+  const maxLimit = 4
+
+  const skipDocs = (page-1) * maxLimit
+  if(deletedDocCount){
+    skipDocs-=deletedDocCount
+  }
+  try{
+    const blogs =await blogModel.find({author: user_id, draft,title:new RegExp(query,'i') })
+    .skip(skipDocs)
+    .limit(maxLimit)
+    .sort({publishedAt:-1})
+    .select("title banner publishedAt blog_id activity des draft -_id")
+
+    return res.status(200).json({blogs})
+    
+
+  }catch(error){
+    return res.status(500).json({
+      error: error instanceof Error ? error.message : "Something went wrong",
+    });
+  }
+
+
+
+}
+
+export const userWrittenBlogsCount =async (req,res)=>{
+  const user_id =req.user
+  
+  const {draft,query} = req.body
+  try{
+   const count = await blogModel.countDocuments({author: user_id, draft,title:new RegExp(query,'i') })
+   return res.status(200).json({totalDocs :count})
+  }catch(error){
+    return res.status(500).json({
+      error: error instanceof Error ? error.message : "Something went wrong",
+    });
+  }
+
+  
+
+
+
+}
+
+export const deleteBlog = async (req, res) => {
+  const { blog_id } = req.body;
+
+  try {
+    const blog = await blogModel.findOneAndDelete({
+      blog_id,
+      author: req.user,
+    });
+
+    if (!blog) {
+      return res.status(404).json({ error: "Blog not found." });
+    }
+
+    if (!blog.draft) {
+      await userModel.findByIdAndUpdate(req.user, {
+        $inc: { "account_info.total_posts": -1 },
+      });
+    }
+
+    return res.status(200).json({ deleted_id: blog_id });
+  } catch (error) {
     return res.status(500).json({
       error: error instanceof Error ? error.message : "Something went wrong",
     });

@@ -1,5 +1,5 @@
 import express from "express"
-import { createBlog, generateUploadUrl, getLatestBlogs, getTrendingBlogs,searchBlogs,allLatestBlogsCount,searchBlogsCount,getBlog,likeBlog,getIsLikedByUser, addComment,getBlogComments,deleteComment } from "../controller/blogController.js"
+import { createBlog, generateUploadUrl, getLatestBlogs, getTrendingBlogs, getAlgorithmBlogs,searchBlogs,allLatestBlogsCount,searchBlogsCount,getBlog,likeBlog,getIsLikedByUser, addComment,getBlogComments,deleteComment,userWrittenBlogs,userWrittenBlogsCount,deleteBlog } from "../controller/blogController.js"
 import { auth } from "../middleware/authMiddleware.js"
 
 
@@ -10,6 +10,7 @@ blogRouter.post("/create-blog",auth,createBlog)
 blogRouter.post("/latest-blogs",getLatestBlogs)
 // blogRouter.get("/blogs-by-category/:category",getBlogsByCategory)
 blogRouter.get("/trending-blogs",getTrendingBlogs)
+blogRouter.get("/algorithm-blogs",getAlgorithmBlogs)
 blogRouter.post("/search-blogs",searchBlogs)
 blogRouter.post("/search-blogs-count",searchBlogsCount)
 blogRouter.post("/all-latest-blogs-count",allLatestBlogsCount)
@@ -19,6 +20,9 @@ blogRouter.post("/isLiked-by-user",auth,getIsLikedByUser)
 blogRouter.post("/add-comment",auth,addComment)
 blogRouter.post("/get-blog-comments",getBlogComments)
 blogRouter.delete("/delete-comment",auth,deleteComment)
+blogRouter.post("/user-written-blogs",auth,userWrittenBlogs)
+blogRouter.post("/user-written-blogs-count",auth,userWrittenBlogsCount)
+blogRouter.delete("/delete-blog",auth,deleteBlog)
 
 
 

@@ -11,6 +11,9 @@ import BlogPage from "./pages/BlogPage";
 import SideNav from "./components/SideNav";
 import ChangePassword from "./pages/ChangePassword";
 import EditProfile from "./pages/EditProfile";
+import { ManageBlogs } from "./pages/ManageBlogs";
+import AlgorithmPage from "./pages/AlgorithmPage";
+import LandingPage from "./pages/LandingPage";
 
 const App = () => {
 
@@ -25,7 +28,13 @@ const App = () => {
         <Route path="/editor/:blog_id" element={<Editor />}/> 
 
         <Route path="/" element={<Navbar />}>
-          <Route index element={<HomePage />} />
+          <Route index element={<LandingPage />} />
+          <Route path="blogs" element={<HomePage />} />
+          <Route path="algorithms" element={<AlgorithmPage />} />
+          <Route path="dashboard" element={<SideNav />}>
+            <Route path="blogs" element={<ManageBlogs/>} />
+
+          </Route>
           <Route path="settings" element={<SideNav />}>
             <Route path="edit-profile" element={<EditProfile />} />
             <Route path="change-password" element={<ChangePassword />} />

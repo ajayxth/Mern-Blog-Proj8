@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="120" viewBox="0 0 480 120" role="img" aria-labelledby="title desc">
+  <title id="title">Blogo logo, concept 2, light mode</title>
+  <desc id="desc">An open book monogram with a rising spark and an editorial Blogo wordmark.</desc>
+  <circle cx="54" cy="60" r="46" fill="#EAF4F2"/>
+  <path d="M21 43c12-4 23-2 33 6v38c-10-8-21-10-33-6V43Zm66 0c-12-4-23-2-33 6v38c10-8 21-10 33-6V43Z" fill="none" stroke="#26766E" stroke-width="6" stroke-linejoin="round"/>
+  <path d="m74 21 3 9 9 3-9 3-3 9-3-9-9-3 9-3 3-9Z" fill="#E5A944"/>
+  <text x="122" y="81" fill="#263B3A" font-family="Georgia, 'Times New Roman', serif" font-size="62" font-weight="700" letter-spacing="-2">blog<tspan fill="#26766E">o</tspan></text>
+  <text x="126" y="105" fill="#6B817E" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="600" letter-spacing="3.2">IDEAS IN GOOD COMPANY</text>
+</svg>

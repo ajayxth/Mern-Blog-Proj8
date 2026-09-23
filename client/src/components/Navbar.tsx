@@ -1,5 +1,7 @@
 import { Link, Outlet, useNavigate,useLocation } from "react-router-dom";
-import logo from "../assets/logo-horizontal.svg";
+import { useTheme } from "../context/ThemeContext";
+import lightLogo1 from "../assets/blogo-logo-light-1.svg";
+import darkLogo1 from "../assets/blogo-logo-dark-1.svg";
 import { useEffect, useRef, useState } from "react";
 import { useUserContext } from "../context/UserContext";
 import UserNavigationPanel from "./UserNavigation";
@@ -11,9 +13,10 @@ const Navbar = () => {
 
   const navigate = useNavigate()
   const location = useLocation();
+  const { theme, toggleTheme } = useTheme();
+  const logo = theme === "dark" ? darkLogo1 : lightLogo1;
 
   const {
-    userAuth,
     userAuth: { access_token, profile_img },
   } = useUserContext();
 
@@ -45,13 +48,15 @@ const Navbar = () => {
     };
   }, []);
   useEffect(() => {
-  setUserNavPanel(false);
-}, [location.pathname]);
+    const closePanel = window.setTimeout(() => setUserNavPanel(false), 0);
+
+    return () => window.clearTimeout(closePanel);
+  }, [location.pathname]);
   return (
     <>
       <nav className="navbar z-50">
-        <Link to="/" className="flex-none w-10">
-          <img src={logo} className="w-full" />
+        <Link to="/" className="flex-none w-28 sm:w-32" aria-label="Blogo home">
+          <img src={logo} alt="Blogo" className="w-full h-auto object-contain" />
         </Link>
 
         <div
@@ -72,6 +77,17 @@ const Navbar = () => {
 
         <div className="flex items-center gap-3 md:gap-6 ml-auto">
           <button
+            type="button"
+            onClick={toggleTheme}
+            aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
+            aria-pressed={theme === "dark"}
+            title={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
+            className="theme-toggle"
+          >
+            <i className={theme === "light" ? "fi fi-rr-moon" : "fi fi-rr-sun"} aria-hidden="true" />
+            <span className="hidden sm:inline">{theme === "light" ? "Dark" : "Light"}</span>
+          </button>
+          <button
             onClick={() => setSearchBoxVisibility((currentVal) => !currentVal)}
             className="md:hidden bg-grey w-12 h-12 rounded-full flex items-center justify-center"
           >
@@ -82,6 +98,16 @@ const Navbar = () => {
         <Link to="/editor" className="hidden md:flex gap-2 link">
           <i className="fi fi-rr-file-edit"></i>
           <p>Write</p>
+        </Link>
+
+        <Link to="/blogs" className="hidden md:flex gap-2 link">
+          <i className="fi fi-rr-book-alt"></i>
+          <p>Blogs</p>
+        </Link>
+
+        <Link to="/algorithms" className="hidden md:flex gap-2 link">
+          <i className="fi fi-rr-chart-histogram"></i>
+          <p>Explore</p>
         </Link>
 
         {access_token ? (
