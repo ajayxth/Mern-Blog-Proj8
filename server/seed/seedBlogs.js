@@ -1,7 +1,7 @@
 import "dotenv/config";
 import mongoose from "mongoose";
 import { nanoid } from "nanoid";
-import { readFile } from "fs/promises";
+import { readFile, readdir } from "fs/promises";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import blogModel from "../models/blogModel.js";
@@ -17,6 +17,20 @@ const slugify = (title) =>
     .replace(/[^a-z0-9-]/g, "")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
+
+const loadPosts = async () => {
+  const names = (await readdir(__dirname))
+    .filter((name) => name.endsWith(".json"))
+    .sort();
+
+  const posts = [];
+  for (const name of names) {
+    const raw = await readFile(join(__dirname, name), "utf8");
+    const parsed = JSON.parse(raw);
+    posts.push(...(Array.isArray(parsed) ? parsed : [parsed]));
+  }
+  return posts;
+};
 
 const seed = async () => {
   if (!process.env.MONGO_URI) {
@@ -44,8 +58,7 @@ const seed = async () => {
     `Seeding as @${author.personal_info.username} (${author.personal_info.email})`,
   );
 
-  const raw = await readFile(join(__dirname, "blogs.json"), "utf8");
-  const posts = JSON.parse(raw);
+  const posts = await loadPosts();
 
   let created = 0;
   let skipped = 0;
